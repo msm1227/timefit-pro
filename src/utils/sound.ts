@@ -89,6 +89,7 @@ export default class SoundManager {
   async playTransition() {
     try {
       if (!this.initialized) return;
+      await this.ensureInitialized();
       // Clone the audio element for overlapping sounds
       const sound = this.transitionSound.cloneNode() as HTMLAudioElement;
       sound.play().catch(console.warn);
@@ -100,6 +101,7 @@ export default class SoundManager {
   async playComplete() {
     try {
       if (!this.initialized) return;
+      await this.ensureInitialized();
       // Clone the audio element for reliable playback
       const sound = this.completeSound.cloneNode() as HTMLAudioElement;
       sound.play().catch(console.warn);
@@ -111,6 +113,7 @@ export default class SoundManager {
   async playWarmupComplete() {
     try {
       if (!this.initialized) return;
+      await this.ensureInitialized();
       // Clone the audio element for reliable playback
       const sound = this.warmupCompleteSound.cloneNode() as HTMLAudioElement;
       sound.play().catch(console.warn);
@@ -122,6 +125,7 @@ export default class SoundManager {
   async playWorkComplete() {
     try {
       if (!this.initialized) return;
+      await this.ensureInitialized();
       // Clone the audio element for reliable playback
       const sound = this.workCompleteSound.cloneNode() as HTMLAudioElement;
       sound.play().catch(console.warn);

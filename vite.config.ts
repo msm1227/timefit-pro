@@ -8,7 +8,7 @@ export default defineConfig({
     exclude: ['lucide-react'],
   },
   build: {
-    assetsInclude: ['**/*.mp3'],
+    assetsInclude: ['**/*.wav'],
   },
   publicDir: 'public',
 });
