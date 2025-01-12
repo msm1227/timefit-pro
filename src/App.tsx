@@ -100,7 +100,7 @@ function App() {
           </button>
         </div>
 
-        {!showSettings && (
+        {!showSettings && !isRunning && (
           <ModeSelector
             mode={mode}
             setMode={(newMode) => {
