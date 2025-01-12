@@ -1,98 +1,93 @@
 export default class SoundManager {
   private transitionSound: HTMLAudioElement;
   private completeSound: HTMLAudioElement;
-  private warmupCompleteSound: HTMLAudioElement;
-  private workCompleteSound: HTMLAudioElement;
   private initialized: boolean = false;
-  private static instance: SoundManager;
+  private static instance: SoundManager | null = null;
 
   constructor() {
     if (SoundManager.instance) {
       return SoundManager.instance;
     }
+
     this.transitionSound = new Audio();
     this.completeSound = new Audio();
-    this.warmupCompleteSound = new Audio();
-    this.workCompleteSound = new Audio();
+
+    const possiblePaths = [
+      '/sounds/transition.mp3',
+      'sounds/transition.mp3',
+      './sounds/transition.mp3',
+      '../sounds/transition.mp3'
+    ];
+
+    this.transitionSound.src = possiblePaths[0];
+    this.completeSound.src = possiblePaths[0].replace('transition', 'complete');
+
+    this.transitionSound.volume = 0.3;
+    this.completeSound.volume = 0.3;
+
     SoundManager.instance = this;
+  }
+
+  private async verifyAudioSource(audio: HTMLAudioElement): Promise<boolean> {
+    return new Promise((resolve) => {
+      const handleCanPlay = () => {
+        cleanup();
+        resolve(true);
+      };
+
+      const handleError = () => {
+        cleanup();
+        resolve(false);
+      };
+
+      const cleanup = () => {
+        audio.removeEventListener('canplaythrough', handleCanPlay);
+        audio.removeEventListener('error', handleError);
+      };
+
+      audio.addEventListener('canplaythrough', handleCanPlay, { once: true });
+      audio.addEventListener('error', handleError, { once: true });
+
+      audio.load();
+    });
   }
 
   async init() {
     try {
       if (this.initialized) return;
       
-      const baseUrl = import.meta.env.BASE_URL || '';
+      for (const path of [
+        '/sounds/transition.mp3',
+        'sounds/transition.mp3',
+        './sounds/transition.mp3',
+        '../sounds/transition.mp3'
+      ]) {
+        this.transitionSound.src = path;
+        this.completeSound.src = path.replace('transition', 'complete');
 
-      // Initialize sounds with user interaction to comply with browser autoplay policies
-      this.transitionSound.src = `${baseUrl}sounds/transition.wav`;
-      this.completeSound.src = `${baseUrl}sounds/complete.wav`;
-      this.warmupCompleteSound.src = `${baseUrl}sounds/transition.wav`;
-      this.workCompleteSound.src = `${baseUrl}sounds/complete.wav`;
-      
-      // Set volume
-      this.transitionSound.volume = 0.3;
-      this.completeSound.volume = 0.3;
-      this.warmupCompleteSound.volume = 0.3;
-      this.workCompleteSound.volume = 0.3;
-      
-      // Load the audio files
-      await Promise.all([
-        new Promise((resolve, reject) => {
-          this.transitionSound.addEventListener('canplaythrough', resolve, { once: true });
-          this.transitionSound.addEventListener('error', (e) => {
-            console.error('Error loading transition sound:', e);
-            reject(new Error(`Failed to load transition sound: ${this.transitionSound.src}`));
-          }, { once: true });
-          this.transitionSound.load();
-        }),
-        new Promise((resolve, reject) => {
-          this.completeSound.addEventListener('canplaythrough', resolve, { once: true });
-          this.completeSound.addEventListener('error', (e) => {
-            console.error('Error loading complete sound:', e);
-            reject(new Error(`Failed to load complete sound: ${this.completeSound.src}`));
-          }, { once: true });
-          this.completeSound.load();
-        }),
-        new Promise((resolve, reject) => {
-          this.warmupCompleteSound.addEventListener('canplaythrough', resolve, { once: true });
-          this.warmupCompleteSound.addEventListener('error', (e) => {
-            console.error('Error loading warmup complete sound:', e);
-            reject(new Error(`Failed to load warmup complete sound: ${this.warmupCompleteSound.src}`));
-          }, { once: true });
-          this.warmupCompleteSound.load();
-        }),
-        new Promise((resolve, reject) => {
-          this.workCompleteSound.addEventListener('canplaythrough', resolve, { once: true });
-          this.workCompleteSound.addEventListener('error', (e) => {
-            console.error('Error loading work complete sound:', e);
-            reject(new Error(`Failed to load work complete sound: ${this.workCompleteSound.src}`));
-          }, { once: true });
-          this.workCompleteSound.load();
-        })
-      ]);
+        const [transitionOk, completeOk] = await Promise.all([
+          this.verifyAudioSource(this.transitionSound),
+          this.verifyAudioSource(this.completeSound)
+        ]);
 
-      this.initialized = true;
-      console.log('Sound manager initialized successfully');
+        if (transitionOk && completeOk) {
+          this.initialized = true;
+          return;
+        }
+      }
+
+      throw new Error('Could not find valid audio paths');
     } catch (error) {
-      console.error('Failed to initialize sounds:', error);
       this.initialized = false;
       throw error;
-    }
-  }
-
-  private async ensureInitialized() {
-    if (!this.initialized) {
-      await this.init();
     }
   }
 
   async playTransition() {
     try {
       if (!this.initialized) return;
-      await this.ensureInitialized();
-      // Clone the audio element for overlapping sounds
-      const sound = this.transitionSound.cloneNode() as HTMLAudioElement;
-      sound.play().catch(console.warn);
+      this.transitionSound.currentTime = 0;
+      await this.transitionSound.play();
     } catch (error) {
       console.warn('Could not play transition sound:', error);
     }
@@ -101,36 +96,10 @@ export default class SoundManager {
   async playComplete() {
     try {
       if (!this.initialized) return;
-      await this.ensureInitialized();
-      // Clone the audio element for reliable playback
-      const sound = this.completeSound.cloneNode() as HTMLAudioElement;
-      sound.play().catch(console.warn);
+      this.completeSound.currentTime = 0;
+      await this.completeSound.play();
     } catch (error) {
       console.warn('Could not play complete sound:', error);
-    }
-  }
-
-  async playWarmupComplete() {
-    try {
-      if (!this.initialized) return;
-      await this.ensureInitialized();
-      // Clone the audio element for reliable playback
-      const sound = this.warmupCompleteSound.cloneNode() as HTMLAudioElement;
-      sound.play().catch(console.warn);
-    } catch (error) {
-      console.warn('Could not play warmup complete sound:', error);
-    }
-  }
-
-  async playWorkComplete() {
-    try {
-      if (!this.initialized) return;
-      await this.ensureInitialized();
-      // Clone the audio element for reliable playback
-      const sound = this.workCompleteSound.cloneNode() as HTMLAudioElement;
-      sound.play().catch(console.warn);
-    } catch (error) {
-      console.warn('Could not play work complete sound:', error);
     }
   }
 }

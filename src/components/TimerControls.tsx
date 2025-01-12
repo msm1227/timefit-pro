@@ -66,12 +66,12 @@ const TimerControls: React.FC<TimerControlsProps> = ({
           if (currentTime <= 0) {
             if (isWarmup) {
               // Transition from warmup to main countdown
-              soundManager.playWarmupComplete();
+              soundManager.playTransition();
               setIsWarmup(false);
               setCurrentTime(settings.time);
             } else {
               // Timer complete
-              soundManager.playWorkComplete();
+              soundManager.playComplete();
               setIsRunning(false);
             }
           } else {
@@ -81,13 +81,13 @@ const TimerControls: React.FC<TimerControlsProps> = ({
           if (currentTime <= 0) {
             if (isWarmup) {
               // Transition from warmup to first work period
-              soundManager.playWarmupComplete();
+              soundManager.playTransition();
               setIsWarmup(false);
               setIsWork(true);
               setCurrentTime(settings.workTime || 0);
             } else if (isWork) {
               // Transition from work to rest
-              soundManager.playWorkComplete();
+              soundManager.playComplete();
               setIsWork(false);
               setCurrentTime(settings.restTime || 0);
             } else {
@@ -97,7 +97,7 @@ const TimerControls: React.FC<TimerControlsProps> = ({
                 setIsRunning(false);
                 setCurrentTime(0);
               } else {
-                soundManager.playWarmupComplete();
+                soundManager.playTransition();
                 setCurrentRound(currentRound + 1);
                 setIsWork(true);
                 setCurrentTime(settings.workTime || 0);
