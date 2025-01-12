@@ -17,7 +17,7 @@ export interface TimerSettings {
 }
 
 function App() {
-  const [mode, setMode] = useState<TimerMode>('forTime');
+  const [mode, setMode] = useState<TimerMode>('interval');
   const [isRunning, setIsRunning] = useState(false);
   const [currentRound, setCurrentRound] = useState(1);
   const [isWork, setIsWork] = useState(true);

@@ -10,16 +10,16 @@ interface ModeSelectorProps {
 const ModeSelector: React.FC<ModeSelectorProps> = ({ mode, setMode }) => {
   const modes = [
     {
-      id: 'forTime' as TimerMode,
-      name: 'For Time',
-      icon: Timer,
-      description: 'Countdown from a set time',
-    },
-    {
       id: 'interval' as TimerMode,
       name: 'Interval',
       icon: Repeat,
       description: 'Work/rest intervals with rounds',
+    },
+    {
+      id: 'forTime' as TimerMode,
+      name: 'For Time',
+      icon: Timer,
+      description: 'Countdown from a set time',
     },
     {
       id: 'stopwatch' as TimerMode,

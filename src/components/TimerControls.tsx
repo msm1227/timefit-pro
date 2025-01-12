@@ -44,14 +44,8 @@ const TimerControls: React.FC<TimerControlsProps> = ({
   const handleStart = async () => {
     setIsRunning(!isRunning);
     if (!isRunning) {
-      try {
-        // Initialize sounds in the background
-        soundManager.init().then(() => {
-          soundManager.playTransition().catch(console.warn);
-        }).catch(console.warn);
-      } catch (error) {
-        console.warn('Failed to initialize sounds:', error);
-      }
+      // Just initialize sounds without playing
+      soundManager.init().catch(console.warn);
     }
   };
 
@@ -65,7 +59,7 @@ const TimerControls: React.FC<TimerControlsProps> = ({
         } else if (mode === 'forTime') {
           if (currentTime <= 0) {
             if (isWarmup) {
-              // Transition from warmup to main countdown
+              // Play sound at end of warmup
               soundManager.playTransition();
               setIsWarmup(false);
               setCurrentTime(settings.time);
@@ -80,7 +74,7 @@ const TimerControls: React.FC<TimerControlsProps> = ({
         } else if (mode === 'interval') {
           if (currentTime <= 0) {
             if (isWarmup) {
-              // Transition from warmup to first work period
+              // Play sound at end of warmup
               soundManager.playTransition();
               setIsWarmup(false);
               setIsWork(true);

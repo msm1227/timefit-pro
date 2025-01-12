@@ -71,6 +71,7 @@ export default class SoundManager {
         ]);
 
         if (transitionOk && completeOk) {
+          console.log('Found valid audio paths:', path);
           this.initialized = true;
           return;
         }
@@ -78,6 +79,7 @@ export default class SoundManager {
 
       throw new Error('Could not find valid audio paths');
     } catch (error) {
+      console.error('Failed to initialize sounds:', error);
       this.initialized = false;
       throw error;
     }
