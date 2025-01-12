@@ -20,12 +20,14 @@ export default class SoundManager {
   async init() {
     try {
       if (this.initialized) return;
+      
+      const baseUrl = import.meta.env.BASE_URL || '';
 
       // Initialize sounds with user interaction to comply with browser autoplay policies
-      this.transitionSound.src = '/sounds/transition.wav';
-      this.completeSound.src = '/sounds/complete.wav';
-      this.warmupCompleteSound.src = '/sounds/transition.wav';
-      this.workCompleteSound.src = '/sounds/complete.wav';
+      this.transitionSound.src = `${baseUrl}sounds/transition.wav`;
+      this.completeSound.src = `${baseUrl}sounds/complete.wav`;
+      this.warmupCompleteSound.src = `${baseUrl}sounds/transition.wav`;
+      this.workCompleteSound.src = `${baseUrl}sounds/complete.wav`;
       
       // Set volume
       this.transitionSound.volume = 0.3;
@@ -37,25 +39,44 @@ export default class SoundManager {
       await Promise.all([
         new Promise((resolve, reject) => {
           this.transitionSound.addEventListener('canplaythrough', resolve, { once: true });
-          this.transitionSound.addEventListener('error', reject, { once: true });
+          this.transitionSound.addEventListener('error', (e) => {
+            console.error('Error loading transition sound:', e);
+            reject(new Error(`Failed to load transition sound: ${this.transitionSound.src}`));
+          }, { once: true });
+          this.transitionSound.load();
         }),
         new Promise((resolve, reject) => {
           this.completeSound.addEventListener('canplaythrough', resolve, { once: true });
-          this.completeSound.addEventListener('error', reject, { once: true });
+          this.completeSound.addEventListener('error', (e) => {
+            console.error('Error loading complete sound:', e);
+            reject(new Error(`Failed to load complete sound: ${this.completeSound.src}`));
+          }, { once: true });
+          this.completeSound.load();
         }),
         new Promise((resolve, reject) => {
           this.warmupCompleteSound.addEventListener('canplaythrough', resolve, { once: true });
-          this.warmupCompleteSound.addEventListener('error', reject, { once: true });
+          this.warmupCompleteSound.addEventListener('error', (e) => {
+            console.error('Error loading warmup complete sound:', e);
+            reject(new Error(`Failed to load warmup complete sound: ${this.warmupCompleteSound.src}`));
+          }, { once: true });
+          this.warmupCompleteSound.load();
         }),
         new Promise((resolve, reject) => {
           this.workCompleteSound.addEventListener('canplaythrough', resolve, { once: true });
-          this.workCompleteSound.addEventListener('error', reject, { once: true });
+          this.workCompleteSound.addEventListener('error', (e) => {
+            console.error('Error loading work complete sound:', e);
+            reject(new Error(`Failed to load work complete sound: ${this.workCompleteSound.src}`));
+          }, { once: true });
+          this.workCompleteSound.load();
         })
       ]);
 
       this.initialized = true;
+      console.log('Sound manager initialized successfully');
     } catch (error) {
-      console.warn('Failed to initialize sounds:', error);
+      console.error('Failed to initialize sounds:', error);
+      this.initialized = false;
+      throw error;
     }
   }
 
