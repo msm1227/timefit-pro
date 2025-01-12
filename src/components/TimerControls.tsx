@@ -40,6 +40,38 @@ const TimerControls: React.FC<TimerControlsProps> = ({
   settings,
   setSettings,
 }) => {
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const renderWorkoutSummary = () => {
+    if (isRunning) return null;
+
+    if (mode === 'interval') {
+      return (
+        <div className="text-center mb-6 text-[#B3B3B3]">
+          <p className="text-sm">
+            {settings.rounds} rounds of {formatTime(settings.workTime || 0)} work / {formatTime(settings.restTime || 0)} rest
+          </p>
+        </div>
+      );
+    }
+
+    if (mode === 'forTime') {
+      return (
+        <div className="text-center mb-6 text-[#B3B3B3]">
+          <p className="text-sm">
+            {formatTime(settings.time)} countdown
+          </p>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   // Initialize sound manager with user interaction
   const handleStart = async () => {
     setIsRunning(!isRunning);
@@ -109,6 +141,7 @@ const TimerControls: React.FC<TimerControlsProps> = ({
 
   return (
     <div className="space-y-6">
+      {renderWorkoutSummary()}
       {/* Control Buttons */}
       <div className="flex justify-center space-x-4">
         <button
