@@ -44,14 +44,13 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
     if (mode === 'interval') {
       return (
         <div className="text-center">
-          <div className="text-6xl font-bold text-white">
+          <div className="text-6xl font-bold text-white mb-4">
             {formatTime(currentTime)}
           </div>
-          <div className="mt-4 text-lg font-medium space-y-1">
-            {isWarmup && (
+          <div className="text-lg font-medium space-y-1">
+            {isWarmup && settings.enableWarmup ? (
               <div className="text-[#1D4ED8] font-bold">WARM UP</div>
-            )}
-            {!isWarmup && (
+            ) : (
               <div className="text-white">
                 Round {currentRound}/{settings.rounds} -{' '}
                 <span className={isWork ? 'text-[#1D4ED8]' : 'text-[#FF9B71]'}>
@@ -67,13 +66,13 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
     if (mode === 'forTime') {
       return (
         <div className="text-center">
-          <div className="text-6xl font-bold text-white">
+          <div className="text-6xl font-bold text-white mb-4">
             {formatTime(currentTime)}
           </div>
-          <div className="mt-4 text-lg font-medium space-y-1">
-            {isWarmup && (
+          <div className="text-lg font-medium space-y-1">
+            {isWarmup && settings.enableWarmup ? (
               <div className="text-[#1D4ED8] font-bold">WARM UP</div>
-            )}
+            ) : null}
           </div>
         </div>
       );

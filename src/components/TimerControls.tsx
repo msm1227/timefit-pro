@@ -90,7 +90,7 @@ const TimerControls: React.FC<TimerControlsProps> = ({
           setElapsedTime((prev) => prev + 1);
         } else if (mode === 'forTime') {
           if (currentTime <= 0) {
-            if (isWarmup) {
+            if (isWarmup && settings.enableWarmup) {
               // Play sound at end of warmup
               soundManager.playTransition();
               setIsWarmup(false);
@@ -105,7 +105,7 @@ const TimerControls: React.FC<TimerControlsProps> = ({
           }
         } else if (mode === 'interval') {
           if (currentTime <= 0) {
-            if (isWarmup) {
+            if (isWarmup && settings.enableWarmup) {
               // Play sound at end of warmup
               soundManager.playTransition();
               setIsWarmup(false);
@@ -167,14 +167,14 @@ const TimerControls: React.FC<TimerControlsProps> = ({
             setIsRunning(false);
             setCurrentRound(1);
             setIsWork(true);
-            setIsWarmup(true);
+            setIsWarmup(settings.enableWarmup);
             setElapsedTime(0);
             if (mode === 'stopwatch') {
               setCurrentTime(0);
             } else if (mode === 'forTime') {
-              setCurrentTime(settings.warmupTime || 10);
+              setCurrentTime(settings.enableWarmup ? 10 : settings.time);
             } else {
-              setCurrentTime(settings.warmupTime || 60);
+              setCurrentTime(settings.enableWarmup ? 10 : settings.workTime || 60);
             }
           }}
           className="flex items-center px-6 py-3 rounded-lg bg-[#404040] hover:bg-[#505050] text-white font-medium transition-colors"

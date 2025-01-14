@@ -84,16 +84,6 @@ const Settings: React.FC<SettingsProps> = ({
     setSettings({ ...settings, restTime: (currentMinutes * 60) + seconds });
   };
 
-  const handleWarmupMinutesChange = (minutes: number) => {
-    const currentSeconds = settings.warmupTime! % 60;
-    setSettings({ ...settings, warmupTime: (minutes * 60) + currentSeconds });
-  };
-
-  const handleWarmupSecondsChange = (seconds: number) => {
-    const currentMinutes = Math.floor(settings.warmupTime! / 60);
-    setSettings({ ...settings, warmupTime: (currentMinutes * 60) + seconds });
-  };
-
   const handleRoundsChange = (rounds: number) => {
     setSettings({ ...settings, rounds });
   };
@@ -104,6 +94,22 @@ const Settings: React.FC<SettingsProps> = ({
     <div className="mt-8 border-t border-[#404040] pt-6">
       <h2 className="text-xl font-semibold text-white mb-4">Settings</h2>
       <div className="space-y-6">
+        {(mode === 'interval' || mode === 'forTime') && (
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="enableWarmup"
+              checked={settings.enableWarmup}
+              onChange={(e) => setSettings({ ...settings, enableWarmup: e.target.checked })}
+              className="h-4 w-4 rounded border-[#404040] bg-[#181818] text-[#1D4ED8] focus:ring-[#1D4ED8]"
+              disabled={isRunning}
+            />
+            <label htmlFor="enableWarmup" className="ml-2 block text-sm font-medium text-white">
+              Enable 10-second warmup
+            </label>
+          </div>
+        )}
+
         {mode === 'interval' && (
           <div>
             <h3 className="text-sm font-medium text-white mb-3">Quick Select Workouts</h3>

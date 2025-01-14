@@ -13,30 +13,30 @@ export interface TimerSettings {
   rounds?: number;
   workTime?: number;
   restTime?: number;
-  warmupTime?: number;
+  enableWarmup?: boolean;
 }
 
 function App() {
   const [mode, setMode] = useState<TimerMode>('interval');
   const [isRunning, setIsRunning] = useState(false);
-  const [currentRound, setCurrentRound] = useState(1);
-  const [isWork, setIsWork] = useState(true);
-  const [isWarmup, setIsWarmup] = useState(true);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [showSettings, setShowSettings] = useState(false);
   const [settings, setSettings] = useState<TimerSettings>({
     time: 300, // 5 minutes default
     rounds: 5,
     workTime: 60,
     restTime: 30,
-    warmupTime: 10, // Fixed 10-second warmup
+    enableWarmup: true,
   });
+  const [currentRound, setCurrentRound] = useState(1);
+  const [isWork, setIsWork] = useState(true);
+  const [isWarmup, setIsWarmup] = useState(settings.enableWarmup);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [showSettings, setShowSettings] = useState(false);
   const [currentTime, setCurrentTime] = useState(() => {
     // Initialize current time based on mode
     if (mode === 'interval') {
-      return settings.warmupTime || 10;
+      return settings.enableWarmup ? 10 : settings.workTime || 60;
     } else if (mode === 'forTime') {
-      return settings.warmupTime || 10;
+      return settings.enableWarmup ? 10 : settings.time;
     }
     return 0;
   });
@@ -45,9 +45,9 @@ function App() {
   useEffect(() => {
     if (!isRunning) {
       if (mode === 'interval') {
-        setCurrentTime(settings.warmupTime || 10);
+        setCurrentTime(settings.enableWarmup ? 10 : settings.workTime || 60);
       } else if (mode === 'forTime') {
-        setCurrentTime(settings.warmupTime || 10);
+        setCurrentTime(settings.enableWarmup ? 10 : settings.time);
       } else {
         setCurrentTime(0);
       }
@@ -58,7 +58,7 @@ function App() {
     if (!isRunning) {
       return 'bg-[#191414]';
     }
-    if (isWarmup) {
+    if (isWarmup && settings.enableWarmup) {
       return 'bg-yellow-500';
     }
     if (mode === 'interval' && !isWork) {
