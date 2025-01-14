@@ -99,6 +99,14 @@ const TimerControls: React.FC<TimerControlsProps> = ({
               // Timer complete
               soundManager.playComplete();
               setIsRunning(false);
+              // Reset to initial state
+              setCurrentRound(1);
+              setIsWork(true);
+              setIsWarmup(settings.enableWarmup);
+              setElapsedTime(0);
+              if (mode === 'forTime') {
+                setCurrentTime(settings.enableWarmup ? 10 : settings.time);
+              }
             }
           } else {
             setCurrentTime(currentTime - 1);
@@ -121,7 +129,12 @@ const TimerControls: React.FC<TimerControlsProps> = ({
               if (currentRound >= (settings.rounds || 1)) {
                 soundManager.playComplete();
                 setIsRunning(false);
-                setCurrentTime(0);
+                // Reset to initial state
+                setCurrentRound(1);
+                setIsWork(true);
+                setIsWarmup(settings.enableWarmup);
+                setElapsedTime(0);
+                setCurrentTime(settings.enableWarmup ? 10 : settings.workTime || 60);
               } else {
                 soundManager.playTransition();
                 setCurrentRound(currentRound + 1);
