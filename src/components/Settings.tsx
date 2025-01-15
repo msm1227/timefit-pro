@@ -16,6 +16,12 @@ interface QuickSelectWorkout {
   settings: Partial<TimerSettings>;
 }
 
+interface QuickSelectWorkout {
+  name: string;
+  description: string;
+  settings: Partial<TimerSettings>;
+}
+
 const Settings: React.FC<SettingsProps> = ({
   mode,
   isRunning,
@@ -24,6 +30,8 @@ const Settings: React.FC<SettingsProps> = ({
   isOpen,
   onClose,
 }) => {
+  const [selectedWorkout, setSelectedWorkout] = React.useState<string>('');
+
   const quickSelectWorkouts: QuickSelectWorkout[] = [
     {
       name: '2:30 x 4',
@@ -65,26 +73,31 @@ const Settings: React.FC<SettingsProps> = ({
   };
 
   const handleWorkMinutesChange = (minutes: number) => {
+    setSelectedWorkout('');
     const currentSeconds = settings.workTime! % 60;
     setSettings({ ...settings, workTime: (minutes * 60) + currentSeconds });
   };
 
   const handleWorkSecondsChange = (seconds: number) => {
+    setSelectedWorkout('');
     const currentMinutes = Math.floor(settings.workTime! / 60);
     setSettings({ ...settings, workTime: (currentMinutes * 60) + seconds });
   };
 
   const handleRestMinutesChange = (minutes: number) => {
+    setSelectedWorkout('');
     const currentSeconds = settings.restTime! % 60;
     setSettings({ ...settings, restTime: (minutes * 60) + currentSeconds });
   };
 
   const handleRestSecondsChange = (seconds: number) => {
+    setSelectedWorkout('');
     const currentMinutes = Math.floor(settings.restTime! / 60);
     setSettings({ ...settings, restTime: (currentMinutes * 60) + seconds });
   };
 
   const handleRoundsChange = (rounds: number) => {
+    setSelectedWorkout('');
     setSettings({ ...settings, rounds });
   };
 
@@ -119,6 +132,7 @@ const Settings: React.FC<SettingsProps> = ({
                   key={workout.name}
                   onClick={() => {
                     if (!isRunning) {
+                      setSelectedWorkout(workout.name);
                       setSettings({
                         ...settings,
                         ...workout.settings,
@@ -127,9 +141,11 @@ const Settings: React.FC<SettingsProps> = ({
                   }}
                   disabled={isRunning}
                   className={`p-3 rounded-lg text-left transition-colors ${
-                    isRunning
+                    isRunning 
                       ? 'bg-[#232323] cursor-not-allowed opacity-50'
-                      : 'bg-[#181818] hover:bg-[#1D4ED8] hover:text-white'
+                      : selectedWorkout === workout.name
+                        ? 'bg-[#181818] border-2 border-[#1D4ED8] text-white'
+                        : 'bg-[#181818] hover:bg-[#1D4ED8] hover:text-white border-2 border-transparent'
                   }`}
                 >
                   <div className="text-sm font-medium text-white">
