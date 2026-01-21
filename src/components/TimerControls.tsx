@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Play, Pause, RefreshCw } from 'lucide-react';
 import { TimerMode, TimerSettings } from '../App';
 import SoundManager from '../utils/sound';
@@ -12,7 +12,6 @@ interface TimerControlsProps {
   currentRound: number;
   isWork: boolean;
   isWarmup: boolean;
-  elapsedTime: number;
   setCurrentTime: (time: number) => void;
   setCurrentRound: (round: number) => void;
   setIsWork: (isWork: boolean) => void;
@@ -20,7 +19,7 @@ interface TimerControlsProps {
   setElapsedTime: (time: number) => void;
   setIsRunning: (running: boolean) => void;
   settings: TimerSettings;
-  setSettings: (settings: TimerSettings) => void;
+  resetTimer: () => void;
 }
 
 const TimerControls: React.FC<TimerControlsProps> = ({
@@ -30,7 +29,6 @@ const TimerControls: React.FC<TimerControlsProps> = ({
   currentRound,
   isWork,
   isWarmup,
-  elapsedTime,
   setCurrentTime,
   setCurrentRound,
   setIsWork,
@@ -38,7 +36,7 @@ const TimerControls: React.FC<TimerControlsProps> = ({
   setElapsedTime,
   setIsRunning,
   settings,
-  setSettings,
+  resetTimer,
 }) => {
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -74,6 +72,7 @@ const TimerControls: React.FC<TimerControlsProps> = ({
 
   // Initialize sound manager with user interaction
   const handleStart = async () => {
+    // When resuming from pause, just toggle isRunning - don't reset any state
     setIsRunning(!isRunning);
     if (!isRunning) {
       // Just initialize sounds without playing
@@ -81,76 +80,12 @@ const TimerControls: React.FC<TimerControlsProps> = ({
     }
   };
 
+  // Timer logic is now handled in App.tsx - sound manager initialization on start
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-
     if (isRunning) {
-      interval = setInterval(() => {
-        if (mode === 'stopwatch') {
-          setElapsedTime((prev) => prev + 1);
-        } else if (mode === 'forTime') {
-          if (currentTime <= 0) {
-            if (isWarmup && settings.enableWarmup) {
-              // Play sound at end of warmup
-              soundManager.playTransition();
-              setIsWarmup(false);
-              setCurrentTime(settings.time);
-            } else {
-              // Timer complete
-              soundManager.playComplete();
-              setIsRunning(false);
-              // Reset to initial state
-              setCurrentRound(1);
-              setIsWork(true);
-              setIsWarmup(settings.enableWarmup);
-              setElapsedTime(0);
-              if (mode === 'forTime') {
-                setCurrentTime(settings.enableWarmup ? 10 : settings.time);
-              }
-            }
-          } else {
-            setCurrentTime(currentTime - 1);
-          }
-        } else if (mode === 'interval') {
-          if (currentTime <= 0) {
-            if (isWarmup && settings.enableWarmup) {
-              // Play sound at end of warmup
-              soundManager.playTransition();
-              setIsWarmup(false);
-              setIsWork(true);
-              setCurrentTime(settings.workTime || 0);
-            } else if (isWork) {
-              // Transition from work to rest
-              soundManager.playComplete();
-              setIsWork(false);
-              setCurrentTime(settings.restTime || 0);
-            } else {
-              // Transition from rest to next round or end
-              if (currentRound >= (settings.rounds || 1)) {
-                soundManager.playComplete();
-                setIsRunning(false);
-                // Reset to initial state
-                setCurrentRound(1);
-                setIsWork(true);
-                setIsWarmup(settings.enableWarmup);
-                setElapsedTime(0);
-                setCurrentTime(settings.enableWarmup ? 10 : settings.workTime || 60);
-              } else {
-                soundManager.playTransition();
-                setCurrentRound(currentRound + 1);
-                setIsWork(true);
-                setCurrentTime(settings.workTime || 0);
-              }
-            }
-          } else {
-            setCurrentTime(currentTime - 1);
-          }
-        }
-      }, 1000);
+      soundManager.init().catch(console.warn);
     }
-
-    return () => clearInterval(interval);
-  }, [isRunning, mode, currentTime, currentRound, isWork, isWarmup, settings]);
+  }, [isRunning]);
 
   return (
     <div className="space-y-6">
@@ -176,20 +111,7 @@ const TimerControls: React.FC<TimerControlsProps> = ({
           )}
         </button>
         <button
-          onClick={() => {
-            setIsRunning(false);
-            setCurrentRound(1);
-            setIsWork(true);
-            setIsWarmup(settings.enableWarmup);
-            setElapsedTime(0);
-            if (mode === 'stopwatch') {
-              setCurrentTime(0);
-            } else if (mode === 'forTime') {
-              setCurrentTime(settings.enableWarmup ? 10 : settings.time);
-            } else {
-              setCurrentTime(settings.enableWarmup ? 10 : settings.workTime || 60);
-            }
-          }}
+          onClick={resetTimer}
           className="flex items-center px-6 py-3 rounded-lg bg-[#404040] hover:bg-[#505050] text-white font-medium transition-colors"
         >
           <RefreshCw className="w-5 h-5 mr-2" /> Reset

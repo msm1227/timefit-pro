@@ -1,6 +1,5 @@
-import React from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Settings as SettingsIcon } from 'lucide-react';
-import { useState, useEffect } from 'react';
 import TimerDisplay from './components/TimerDisplay';
 import TimerControls from './components/TimerControls';
 import ModeSelector from './components/ModeSelector';
@@ -32,7 +31,6 @@ function App() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [currentTime, setCurrentTime] = useState(() => {
-    // Initialize current time based on mode
     if (mode === 'interval') {
       return settings.enableWarmup ? 10 : settings.workTime || 60;
     } else if (mode === 'forTime') {
@@ -40,19 +38,118 @@ function App() {
     }
     return 0;
   });
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastTickRef = useRef<number | null>(null);
 
-  // Update current time when mode changes
+  // Helper to reset timer state
+  const resetTimer = (newMode: TimerMode = mode) => {
+    setIsRunning(false);
+    setCurrentRound(1);
+    setIsWork(true);
+    setIsWarmup(true);
+    setElapsedTime(0);
+    if (newMode === 'interval') {
+      setCurrentTime(settings.enableWarmup ? 10 : settings.workTime || 60);
+    } else if (newMode === 'forTime') {
+      setCurrentTime(settings.enableWarmup ? 10 : settings.time);
+    } else {
+      setCurrentTime(0);
+    }
+  };
+
+  // Timer logic with state transitions
   useEffect(() => {
     if (!isRunning) {
-      if (mode === 'interval') {
-        setCurrentTime(settings.enableWarmup ? 10 : settings.workTime || 60);
-      } else if (mode === 'forTime') {
-        setCurrentTime(settings.enableWarmup ? 10 : settings.time);
-      } else {
-        setCurrentTime(0);
-      }
+      if (timerRef.current) clearInterval(timerRef.current);
+      lastTickRef.current = null;
+      return;
     }
-  }, [mode, settings, isRunning]);
+
+    const soundManager = new (require('./utils/sound').default)();
+    soundManager.init().catch(console.warn);
+
+    lastTickRef.current = Date.now();
+    timerRef.current = setInterval(() => {
+      if (!lastTickRef.current) return;
+      const now = Date.now();
+      const delta = Math.floor((now - lastTickRef.current) / 1000);
+
+      if (delta > 0) {
+        lastTickRef.current = now;
+
+        setCurrentTime((prevTime) => {
+          const newTime = prevTime - delta;
+
+          // Handle timer reaching zero
+          if (newTime <= 0) {
+            if (mode === 'stopwatch') {
+              setElapsedTime((prev) => prev + delta);
+              return prevTime + delta;
+            } else if (mode === 'forTime') {
+              if (isWarmup && settings.enableWarmup) {
+                // End of warmup
+                soundManager.playTransition();
+                setIsWarmup(false);
+                return settings.time;
+              } else {
+                // Timer complete
+                soundManager.playComplete();
+                setIsRunning(false);
+                setCurrentRound(1);
+                setIsWork(true);
+                setIsWarmup(settings.enableWarmup ?? false);
+                setElapsedTime(0);
+                return settings.enableWarmup ? 10 : settings.time;
+              }
+            } else if (mode === 'interval') {
+              if (isWarmup && settings.enableWarmup) {
+                // End of warmup
+                soundManager.playTransition();
+                setIsWarmup(false);
+                setIsWork(true);
+                return settings.workTime || 0;
+              } else if (isWork) {
+                // End of work period
+                soundManager.playComplete();
+                setIsWork(false);
+                return settings.restTime || 0;
+              } else {
+                // End of rest period
+                if (currentRound >= (settings.rounds || 1)) {
+                  // Workout complete
+                  soundManager.playComplete();
+                  setIsRunning(false);
+                  setCurrentRound(1);
+                  setIsWork(true);
+                  setIsWarmup(settings.enableWarmup ?? false);
+                  setElapsedTime(0);
+                  return settings.enableWarmup ? 10 : (settings.workTime || 60);
+                } else {
+                  // Next round
+                  soundManager.playTransition();
+                  setCurrentRound((prev) => prev + 1);
+                  setIsWork(true);
+                  return settings.workTime || 0;
+                }
+              }
+            }
+          }
+
+          if (mode !== 'stopwatch') {
+            return Math.max(newTime, 0);
+          }
+
+          setElapsedTime((prev) => prev + delta);
+          return newTime;
+        });
+      }
+    }, 250);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      lastTickRef.current = null;
+    };
+  }, [isRunning, mode, isWarmup, isWork, currentRound, settings]);
 
   const getBackgroundColor = () => {
     if (!isRunning) {
@@ -75,21 +172,8 @@ function App() {
             Workout Timer
           </h1>
           <button
+            aria-label="Open settings"
             onClick={() => {
-              if (isRunning) {
-                setIsRunning(false);
-                setCurrentRound(1);
-                setIsWork(true);
-                setIsWarmup(true);
-                setElapsedTime(0);
-                if (mode === 'interval') {
-                  setCurrentTime(settings.warmupTime || 60);
-                } else if (mode === 'forTime') {
-                  setCurrentTime(settings.time);
-                } else {
-                  setCurrentTime(0);
-                }
-              }
               setShowSettings(!showSettings);
             }}
             className={`p-2 rounded-lg transition-colors ${
@@ -104,20 +188,7 @@ function App() {
           <ModeSelector
             mode={mode}
             setMode={(newMode) => {
-              if (isRunning) {
-                setIsRunning(false);
-                setCurrentRound(1);
-                setIsWork(true);
-                setIsWarmup(true);
-                setElapsedTime(0);
-                if (newMode === 'interval') {
-                  setCurrentTime(settings.warmupTime || 60);
-                } else if (newMode === 'forTime') {
-                  setCurrentTime(settings.time);
-                } else {
-                  setCurrentTime(0);
-                }
-              }
+              resetTimer(newMode);
               setMode(newMode);
             }}
           />
@@ -162,6 +233,7 @@ function App() {
             elapsedTime={elapsedTime}
             settings={settings}
             setSettings={setSettings}
+            resetTimer={resetTimer}
           />
         </div>}
       </div>
