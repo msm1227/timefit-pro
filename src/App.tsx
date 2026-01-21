@@ -4,6 +4,7 @@ import TimerDisplay from './components/TimerDisplay';
 import TimerControls from './components/TimerControls';
 import ModeSelector from './components/ModeSelector';
 import Settings from './components/Settings';
+import SoundManager from './utils/sound';
 
 export type TimerMode = 'forTime' | 'interval' | 'stopwatch';
 
@@ -65,7 +66,7 @@ function App() {
       return;
     }
 
-    const soundManager = new (require('./utils/sound').default)();
+    const soundManager = new SoundManager();
     soundManager.init().catch(console.warn);
 
     lastTickRef.current = Date.now();
