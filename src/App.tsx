@@ -47,7 +47,7 @@ function App() {
     setIsRunning(false);
     setCurrentRound(1);
     setIsWork(true);
-    setIsWarmup(true);
+    setIsWarmup(settings.enableWarmup ?? false);
     setElapsedTime(0);
     if (newMode === 'interval') {
       setCurrentTime(settings.enableWarmup ? 10 : settings.workTime || 60);
@@ -151,6 +151,18 @@ function App() {
       lastTickRef.current = null;
     };
   }, [isRunning, mode, isWarmup, isWork, currentRound, settings]);
+
+  // Sync warmup state and timer when settings change (only when not running)
+  useEffect(() => {
+    if (!isRunning) {
+      setIsWarmup(settings.enableWarmup ?? false);
+      if (mode === 'forTime') {
+        setCurrentTime(settings.enableWarmup ? 10 : settings.time);
+      } else if (mode === 'interval') {
+        setCurrentTime(settings.enableWarmup ? 10 : settings.workTime || 60);
+      }
+    }
+  }, [settings.enableWarmup, settings.time, settings.workTime, mode, isRunning]);
 
   const getBackgroundColor = () => {
     if (!isRunning) {
