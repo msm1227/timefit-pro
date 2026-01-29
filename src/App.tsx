@@ -41,6 +41,7 @@ function App() {
   });
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastTickRef = useRef<number | null>(null);
+  const hasStartedRef = useRef(false);
 
   // Helper to reset timer state
   const resetTimer = (newMode: TimerMode = mode) => {
@@ -49,6 +50,7 @@ function App() {
     setIsWork(true);
     setIsWarmup(settings.enableWarmup ?? false);
     setElapsedTime(0);
+    hasStartedRef.current = false; // Reset the started flag
     if (newMode === 'interval') {
       setCurrentTime(settings.enableWarmup ? 10 : settings.workTime || 60);
     } else if (newMode === 'forTime') {
@@ -152,9 +154,16 @@ function App() {
     };
   }, [isRunning, mode, isWarmup, isWork, currentRound, settings]);
 
-  // Sync warmup state and timer when settings change (only when not running)
+  // Track when timer has been started to prevent pause from resetting
   useEffect(() => {
-    if (!isRunning) {
+    if (isRunning) {
+      hasStartedRef.current = true;
+    }
+  }, [isRunning]);
+
+  useEffect(() => {
+    // Only reset if timer has never been started, or has been fully reset
+    if (!isRunning && !hasStartedRef.current) {
       setIsWarmup(settings.enableWarmup ?? false);
       if (mode === 'forTime') {
         setCurrentTime(settings.enableWarmup ? 10 : settings.time);
@@ -162,7 +171,7 @@ function App() {
         setCurrentTime(settings.enableWarmup ? 10 : settings.workTime || 60);
       }
     }
-  }, [settings.enableWarmup, settings.time, settings.workTime, mode, isRunning]);
+  }, [settings.enableWarmup, settings.time, settings.workTime, mode]);
 
   const getBackgroundColor = () => {
     if (!isRunning) {

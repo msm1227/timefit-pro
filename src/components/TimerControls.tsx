@@ -188,7 +188,7 @@ const TimerControls: React.FC<TimerControlsProps> = ({
         {mode === 'interval' && isRunning && (
           <button
             onClick={handleSkip}
-            className="flex items-center px-6 py-3 rounded-lg bg-[#6B21A8] hover:bg-[#7C3AED] text-white font-medium transition-colors"
+            className="flex items-center px-6 py-3 rounded-lg bg-[#0891B2] hover:bg-[#06B6D4] text-white font-medium transition-colors"
           >
             <SkipForward className="w-5 h-5 mr-2" /> Skip
           </button>
