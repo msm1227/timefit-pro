@@ -161,7 +161,7 @@ const TimerControls: React.FC<TimerControlsProps> = ({
       {renderWorkoutSummary()}
       {/* Total Time Remaining - shown during interval workout */}
       {mode === 'interval' && isRunning && (
-        <div className="text-center text-[#B3B3B3] text-sm">
+        <div className="text-center text-white text-xl font-semibold">
           Total time remaining: {formatTime(calculateRemainingTime())}
         </div>
       )}
